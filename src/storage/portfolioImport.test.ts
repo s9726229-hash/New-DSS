@@ -109,4 +109,39 @@ describe('persistConfirmedHoldings', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].quantity).toBe(2000);
   });
+
+  it('leaves holdings for other snapshot dates untouched when re-importing a single date', async () => {
+    // Persist holdings for first date
+    await persistConfirmedHoldings(
+      [holding({ quantity: 1000 })],
+      '2024-03-01',
+      '2024-03-01T00:00:00.000Z',
+    );
+    // Persist holdings for second date
+    await persistConfirmedHoldings(
+      [holding({ quantity: 1500 })],
+      '2024-03-15',
+      '2024-03-15T00:00:00.000Z',
+    );
+    // Re-import only the first date with different data
+    await persistConfirmedHoldings(
+      [holding({ quantity: 2000 })],
+      '2024-03-01',
+      '2024-03-02T00:00:00.000Z',
+    );
+
+    const db = await openDssDatabase();
+    const allRows = await db.getAll('holdingsSnapshots');
+    db.close();
+
+    // Verify the second date row is unchanged
+    const secondDateRows = allRows.filter((row) => row.snapshotDate === '2024-03-15');
+    expect(secondDateRows).toHaveLength(1);
+    expect(secondDateRows[0].quantity).toBe(1500);
+
+    // Verify the first date row has the new data
+    const firstDateRows = allRows.filter((row) => row.snapshotDate === '2024-03-01');
+    expect(firstDateRows).toHaveLength(1);
+    expect(firstDateRows[0].quantity).toBe(2000);
+  });
 });
