@@ -1,0 +1,32 @@
+/* src/styles/tokens.css */
+:root {
+  --color-nav-bg: #2b2620;
+  --color-nav-text: #b8afa0;
+  --color-nav-text-active: #ffffff;
+  --color-accent: #0e7c86;
+  --color-bg: #f7f5f1;
+  --color-surface: #ffffff;
+  --color-border: #e5e0d8;
+  --color-text-primary: #1f1b16;
+  --color-text-secondary: #6b6558;
+  --color-tile-bg: #f1eee7;
+  --color-rise: #c4342a;
+  --color-fall: #1e8e5a;
+  --color-caution: #b8860b;
+}
+
+[data-theme='dark'] {
+  --color-nav-bg: #12141a;
+  --color-nav-text: #7b828f;
+  --color-nav-text-active: #ffffff;
+  --color-accent: #3fbfae;
+  --color-bg: #181a1f;
+  --color-surface: #20232b;
+  --color-border: #2e323c;
+  --color-text-primary: #e8e9ed;
+  --color-text-secondary: #9aa0ae;
+  --color-tile-bg: #262a33;
+  --color-rise: #e5534b;
+  --color-fall: #3dae71;
+  --color-caution: #d9a441;
+}

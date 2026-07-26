@@ -1,0 +1,94 @@
+/* src/styles/app.css */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.app-shell__nav {
+  width: 200px;
+  flex-shrink: 0;
+  background: var(--color-nav-bg);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.app-shell__brand {
+  color: var(--color-nav-text-active);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 10px 12px;
+  margin: 0;
+}
+
+.app-shell__nav-item {
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  border-radius: 0;
+  color: var(--color-nav-text);
+  font-size: 13px;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-shell__nav-item[aria-current='page'] {
+  color: var(--color-nav-text-active);
+  border-left-color: var(--color-accent);
+}
+
+.app-shell__content {
+  flex: 1;
+  padding: 24px;
+}
+
+.data-connection-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.data-connection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.data-connection-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.market-sync-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.market-sync-panel__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
