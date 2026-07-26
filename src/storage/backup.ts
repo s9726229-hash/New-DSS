@@ -26,8 +26,7 @@ function assertCredentialFree(value: unknown): void {
       throw new Error('備份不得包含 API Key 或其他憑證');
     }
 
-    // Check if the value itself is a string that looks like a credential key
-    if (typeof child === 'string' && isCredentialKey(child)) {
+    if (key === 'key' && typeof child === 'string' && isCredentialKey(child)) {
       throw new Error('備份不得包含 API Key 或其他憑證');
     }
 

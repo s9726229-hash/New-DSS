@@ -45,6 +45,43 @@ describe('createCompleteBackup', () => {
 
     await expect(createCompleteBackup()).rejects.toThrow(/憑證/);
   });
+
+  it('allows transactions with "secret" in stockName without throwing', async () => {
+    const db = await openDssDatabase();
+    await db.put('transactions', {
+      id: 'tx-1',
+      tradeDate: '2024-03-01',
+      stockId: '2886',
+      stockName: '秘密控股 Secret Holdings',
+      side: 'buy',
+      quantity: 100,
+      price: 50,
+      fees: 0,
+      tax: 0,
+      settlementDate: null,
+      brokerReference: null,
+      importedAt: '2024-03-01T00:00:00.000Z',
+    });
+    db.close();
+
+    const backup = await createCompleteBackup();
+
+    expect(backup.transactions).toHaveLength(1);
+    expect(backup.transactions[0]).toEqual({
+      id: 'tx-1',
+      tradeDate: '2024-03-01',
+      stockId: '2886',
+      stockName: '秘密控股 Secret Holdings',
+      side: 'buy',
+      quantity: 100,
+      price: 50,
+      fees: 0,
+      tax: 0,
+      settlementDate: null,
+      brokerReference: null,
+      importedAt: '2024-03-01T00:00:00.000Z',
+    });
+  });
 });
 
 describe('createLightweightExport', () => {
