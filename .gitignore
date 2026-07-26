@@ -8,3 +8,5 @@ dist/
 coverage/
 *.csv
 *.CSV
+CURRENT_REQUIREMENTS.md
+docs/
