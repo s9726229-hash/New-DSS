@@ -10,13 +10,15 @@ export function toInstitutionDailyRecords(
   institutionalRows: FinMindInstitutionalRow[],
   institutionName: string,
 ): InstitutionDailyRecord[] {
-  const volumeByDate = new Map(priceRows.map((row) => [row.date, row.Trading_Volume]));
+  const volumeByDateAndStock = new Map(
+    priceRows.map((row) => [`${row.date}|${row.stock_id}`, row.Trading_Volume]),
+  );
 
   return institutionalRows
     .filter((row) => row.name === institutionName)
     .map((row) => ({
       date: row.date,
       netShares: row.buy - row.sell,
-      totalVolume: volumeByDate.get(row.date) ?? 0,
+      totalVolume: volumeByDateAndStock.get(`${row.date}|${row.stock_id}`) ?? 0,
     }));
 }

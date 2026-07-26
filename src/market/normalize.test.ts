@@ -69,4 +69,16 @@ describe('toInstitutionDailyRecords', () => {
 
     expect(result).toEqual([{ date: '2024-03-05', netShares: 50, totalVolume: 0 }]);
   });
+
+  it('scopes volume join by both date and stock_id, not just date', () => {
+    const prices = [
+      priceRow({ date: '2024-03-01', stock_id: '0050', Trading_Volume: 1000 }),
+      priceRow({ date: '2024-03-01', stock_id: '2330', Trading_Volume: 5000 }),
+    ];
+    const institutional = [institutionalRow({ date: '2024-03-01', stock_id: '0050', buy: 600, sell: 400 })];
+
+    const result = toInstitutionDailyRecords(prices, institutional, 'Foreign_Investor');
+
+    expect(result).toEqual([{ date: '2024-03-01', netShares: 200, totalVolume: 1000 }]);
+  });
 });
