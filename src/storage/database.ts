@@ -2,7 +2,7 @@ import { openDB, type IDBPDatabase } from 'idb';
 import type { DssDatabase } from './types';
 
 export const DATABASE_NAME = 'new-dss';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 3;
 
 export function openDssDatabase(): Promise<IDBPDatabase<DssDatabase>> {
   return openDB<DssDatabase>(DATABASE_NAME, DATABASE_VERSION, {
