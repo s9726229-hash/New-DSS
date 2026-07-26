@@ -1,5 +1,5 @@
-import { calculateInstitutionState, deriveJointChipState } from '../market/chip';
-import { calculateTechnicalSnapshot } from '../market/technical';
+import { calculateInstitutionState, deriveJointChipState } from './chip';
+import { calculateTechnicalSnapshot } from './technical';
 import type {
   DailyCloseRecord,
   InstitutionDailyRecord,
@@ -7,9 +7,7 @@ import type {
   InstitutionThresholds,
   JointChipState,
   TechnicalSnapshot,
-} from '../market/types';
-
-const requiredInstitutionRecords = 5;
+} from './types';
 
 export type DailyDssSnapshotInput = {
   prices: DailyCloseRecord[];
@@ -20,13 +18,12 @@ export type DailyDssSnapshotInput = {
 };
 
 export type DailyDssSnapshot = {
-  isReady: boolean;
   technical: TechnicalSnapshot | null;
   chip: {
     foreign: InstitutionState;
     trust: InstitutionState;
     joint: JointChipState;
-  } | null;
+  };
   dataDates: {
     prices: string | null;
     foreign: string | null;
@@ -39,37 +36,21 @@ function latestDate<T extends { date: string }>(records: T[]): string | null {
 }
 
 export function createDailyDssSnapshot(input: DailyDssSnapshotInput): DailyDssSnapshot {
-  const dataDates = {
-    prices: latestDate(input.prices),
-    foreign: latestDate(input.foreign),
-    trust: latestDate(input.trust),
-  };
   const technical = calculateTechnicalSnapshot(input.prices);
-
-  if (
-    !technical ||
-    input.foreign.length < requiredInstitutionRecords ||
-    input.trust.length < requiredInstitutionRecords
-  ) {
-    return {
-      isReady: false,
-      technical: null,
-      chip: null,
-      dataDates,
-    };
-  }
-
   const foreign = calculateInstitutionState(input.foreign, input.foreignThresholds);
   const trust = calculateInstitutionState(input.trust, input.trustThresholds);
 
   return {
-    isReady: true,
     technical,
     chip: {
       foreign,
       trust,
       joint: deriveJointChipState(foreign, trust),
     },
-    dataDates,
+    dataDates: {
+      prices: latestDate(input.prices),
+      foreign: latestDate(input.foreign),
+      trust: latestDate(input.trust),
+    },
   };
 }

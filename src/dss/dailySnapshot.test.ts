@@ -1,65 +1,69 @@
-import { expect, test } from 'vitest';
-
+import { describe, expect, it } from 'vitest';
 import { createDailyDssSnapshot } from './dailySnapshot';
+import type { DailyCloseRecord, InstitutionDailyRecord, InstitutionThresholds } from './types';
 
-const thresholds = {
-  accumulating: 0.4,
-  selling: -0.4,
-};
+const thresholds: InstitutionThresholds = { accumulating: 0.1, selling: -0.1 };
 
-const prices = [...Array(58).fill(100), 90, 101, 102].map((close, index) => ({
-  date: `2026-05-${String(index + 1).padStart(2, '0')}`,
-  close,
-}));
+function buildPrices(count: number): DailyCloseRecord[] {
+  const startDate = new Date('2024-01-01T00:00:00Z');
+  return new Array(count).fill(0).map((_, index) => {
+    const date = new Date(startDate);
+    date.setUTCDate(date.getUTCDate() + index);
+    return { date: date.toISOString().slice(0, 10), close: 100 };
+  });
+}
 
-const foreign = [
-  { date: '2026-07-20', netShares: 200, totalVolume: 1_000 },
-  { date: '2026-07-21', netShares: 200, totalVolume: 1_000 },
-  { date: '2026-07-22', netShares: -50, totalVolume: 1_000 },
-  { date: '2026-07-23', netShares: -50, totalVolume: 1_000 },
-  { date: '2026-07-24', netShares: 200, totalVolume: 1_000 },
-];
+function buildInstitutionRecords(count: number): InstitutionDailyRecord[] {
+  const startDate = new Date('2024-01-01T00:00:00Z');
+  return new Array(count).fill(0).map((_, index) => {
+    const date = new Date(startDate);
+    date.setUTCDate(date.getUTCDate() + index);
+    return { date: date.toISOString().slice(0, 10), netShares: 0, totalVolume: 1000 };
+  });
+}
 
-const trust = foreign.map((record) => ({ ...record }));
+describe('createDailyDssSnapshot', () => {
+  it('leaves technical null when fewer than 60 price records exist, but still evaluates chip', () => {
+    const snapshot = createDailyDssSnapshot({
+      prices: buildPrices(10),
+      foreign: buildInstitutionRecords(5),
+      trust: buildInstitutionRecords(5),
+      foreignThresholds: thresholds,
+      trustThresholds: thresholds,
+    });
 
-test('keeps ready technical and chip results in separate snapshot sections', () => {
-  const snapshot = createDailyDssSnapshot({
-    prices,
-    foreign,
-    trust,
-    foreignThresholds: thresholds,
-    trustThresholds: thresholds,
+    expect(snapshot.technical).toBeNull();
+    expect(snapshot.chip.foreign.status).toBe('ready');
+    expect(snapshot.chip.trust.status).toBe('ready');
+    expect(snapshot.chip.joint).toBe('noConsensus');
   });
 
-  expect(snapshot.isReady).toBe(true);
-  expect(snapshot.technical?.monthlyLineState).toBe('confirmed');
-  expect(snapshot.chip?.foreign.state).toBe('accumulating');
-  expect(snapshot.chip?.joint).toBe('jointAccumulation');
-});
+  it('leaves chip notReady when institution data is thin, but still evaluates technical', () => {
+    const snapshot = createDailyDssSnapshot({
+      prices: buildPrices(60),
+      foreign: buildInstitutionRecords(2),
+      trust: buildInstitutionRecords(2),
+      foreignThresholds: thresholds,
+      trustThresholds: thresholds,
+    });
 
-test('returns a not-ready snapshot when price data cannot produce 60MA', () => {
-  const snapshot = createDailyDssSnapshot({
-    prices: prices.slice(0, 59),
-    foreign,
-    trust,
-    foreignThresholds: thresholds,
-    trustThresholds: thresholds,
+    expect(snapshot.technical).not.toBeNull();
+    expect(snapshot.chip.foreign.status).toBe('notReady');
+    expect(snapshot.chip.trust.status).toBe('notReady');
+    expect(snapshot.chip.joint).toBe('notReady');
   });
 
-  expect(snapshot.isReady).toBe(false);
-  expect(snapshot.technical).toBeNull();
-  expect(snapshot.chip).toBeNull();
-});
+  it('reports the latest date for each data source independently', () => {
+    const snapshot = createDailyDssSnapshot({
+      prices: buildPrices(60),
+      foreign: buildInstitutionRecords(5),
+      trust: [],
+      foreignThresholds: thresholds,
+      trustThresholds: thresholds,
+    });
 
-test('returns a not-ready snapshot when either institution lacks five days', () => {
-  const snapshot = createDailyDssSnapshot({
-    prices,
-    foreign: foreign.slice(0, 4),
-    trust,
-    foreignThresholds: thresholds,
-    trustThresholds: thresholds,
+    expect(snapshot.dataDates.prices).toBe('2024-02-29');
+    expect(snapshot.dataDates.foreign).toBe('2024-01-05');
+    expect(snapshot.dataDates.trust).toBeNull();
   });
-
-  expect(snapshot.isReady).toBe(false);
-  expect(snapshot.chip).toBeNull();
 });
